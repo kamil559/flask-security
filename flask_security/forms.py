@@ -75,6 +75,12 @@ _default_field_labels = {
     "passcode": _("Passcode"),
 }
 
+_default_placeholders = {
+    "code_or_password": _("Code or Password"),
+    "via_email": _("Via email"),
+    "via_sms": _("Via SMS"),
+}
+
 
 class ValidatorMixin:
     """
@@ -155,6 +161,14 @@ def get_form_field_label(key):
     translate/render form.
     """
     return make_lazy_string(_local_xlate, _default_field_labels.get(key, ""))
+
+
+def get_form_field_placeholder(key):
+    """This is called during import since form fields are declared as part of
+    class. Thus can't call 'localize_callback' until we need to actually
+    translate/render form.
+    """
+    return make_lazy_string(_local_xlate, _default_placeholders.get(key, ""))
 
 
 def unique_user_email(form, field):

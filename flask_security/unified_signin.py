@@ -39,7 +39,7 @@ from wtforms import BooleanField, RadioField, StringField, SubmitField, validato
 
 from .confirmable import requires_confirmation
 from .decorators import anonymous_user_required, auth_required, unauth_csrf
-from .forms import Form, Required, get_form_field_label
+from .forms import Form, Required, get_form_field_label, get_form_field_placeholder
 from .quart_compat import get_quart_status
 from .signals import us_profile_changed, us_security_token_sent
 from .twofactor import (
@@ -76,6 +76,7 @@ _datastore = LocalProxy(lambda: _security.datastore)
 if get_quart_status():  # pragma: no cover
     from quart import redirect
 
+
     async def _commit(response=None):
         _datastore.commit()
         return response
@@ -83,6 +84,7 @@ if get_quart_status():  # pragma: no cover
 
 else:
     from flask import redirect
+
 
     def _commit(response=None):
         _datastore.commit()
@@ -135,13 +137,14 @@ class _UnifiedPassCodeForm(Form):
 
     passcode = StringField(
         get_form_field_label("passcode"),
-        render_kw={"placeholder": _("Code or Password")},
+        render_kw={"placeholder": get_form_field_placeholder("code_or_password")},
     )
     submit = SubmitField(get_form_field_label("submit"))
 
     chosen_method = RadioField(
         _("Available Methods"),
-        choices=[("email", _("Via email")), ("sms", _("Via SMS"))],
+        choices=[("email", get_form_field_placeholder("via_email")),
+                 ("sms", get_form_field_placeholder("via_sms"))],
         validators=[validators.Optional()],
     )
     submit_send_code = SubmitField(get_form_field_label("sendcode"))
@@ -538,7 +541,6 @@ def us_signin():
                 if config_value("TWO_FACTOR_ALWAYS_VALIDATE") or (
                     not tf_validity_token_is_valid
                 ):
-
                     return tf_login(
                         form.user,
                         remember=remember_me,
@@ -885,7 +887,6 @@ def us_setup_validate(token):
 
 @auth_required(lambda: config_value("API_ENABLED_METHODS"))
 def us_qrcode(token):
-
     if "authenticator" not in config_value("US_ENABLED_METHODS"):
         return abort(404)
     expired, invalid, state = check_and_get_token_status(
